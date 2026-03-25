@@ -1,0 +1,184 @@
+import React, { useState } from "react";
+import { format, parseISO } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { Save, Share, Sparkles, CheckCircle2, MapPin, Calendar, Users, ArrowLeft } from "lucide-react";
+import { PremiumButton, GlassCard } from "../shared";
+import { ItineraryTab } from "./itinerary-tab";
+import { TransportTab } from "./transport-tab";
+import { HotelsTab } from "./hotels-tab";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useSaveTrip, getGetSavedTripsQueryKey } from "@/hooks/use-travel";
+import { useQueryClient } from "@tanstack/react-query";
+import type { TravelPlanResponse, TravelPlanRequest } from "@workspace/api-client-react";
+
+interface ResultsDashboardProps {
+  plan: TravelPlanResponse;
+  request: TravelPlanRequest;
+  onBack: () => void;
+}
+
+export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'transport' | 'hotels'>('itinerary');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { mutate: saveTrip, isPending: isSaving } = useSaveTrip({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "✨ Trip Saved!", description: "You can find it in your Saved Trips menu." });
+        queryClient.invalidateQueries({ queryKey: getGetSavedTripsQueryKey() });
+      },
+      onError: () => {
+        toast({ title: "Error", description: "Failed to save trip. Please try again.", variant: "destructive" });
+      }
+    }
+  });
+
+  const handleSave = () => {
+    saveTrip({
+      data: {
+        name: `${plan.destination} Adventure`,
+        plan,
+        request
+      }
+    });
+  };
+
+  const handleShare = () => {
+    const text = `Check out my AI-generated trip to ${plan.destination}!\nCost: $${plan.totalEstimatedCost}\n${plan.itinerary.length} Days of adventure.`;
+    navigator.clipboard.writeText(text);
+    toast({ title: "📋 Copied to clipboard!", description: "Share your itinerary with friends." });
+  };
+
+  const budgetPct = Math.min(100, Math.max(0, (plan.totalEstimatedCost / request.budget) * 100));
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full animate-in fade-in duration-700">
+      
+      {/* Header Actions */}
+      <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+        <PremiumButton variant="ghost" onClick={onBack} className="pl-2">
+          <ArrowLeft className="w-4 h-4" /> Back to Search
+        </PremiumButton>
+        <div className="flex gap-3">
+          <PremiumButton variant="outline" onClick={handleShare}>
+            <Share className="w-4 h-4" /> Share
+          </PremiumButton>
+          <PremiumButton onClick={handleSave} isLoading={isSaving}>
+            <Save className="w-4 h-4" /> Save Trip
+          </PremiumButton>
+        </div>
+      </div>
+
+      {/* Hero Banner */}
+      <GlassCard className="p-0 mb-10 overflow-hidden group">
+        <div className="relative h-64 md:h-80 w-full">
+          <img 
+            src={plan.imageUrl || "https://images.unsplash.com/photo-1506905489-4e76d91054ee?w=1920&fit=crop"} 
+            alt={plan.destination} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          
+          <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 right-6">
+            <h1 className="text-4xl md:text-6xl font-display font-bold text-white drop-shadow-lg mb-4">{plan.destination}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-white/90 font-medium">
+              <span className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                <Calendar className="w-4 h-4" />
+                {format(parseISO(request.startDate), "MMM do")} - {format(parseISO(request.endDate), "MMM do, yyyy")}
+              </span>
+              <span className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                <Users className="w-4 h-4" />
+                {request.travelers} {request.travelers === 1 ? 'Traveler' : 'Travelers'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        {/* Budget & Optimization Sidebar */}
+        <div className="lg:col-span-4 space-y-6">
+          <GlassCard className="p-6 border-t-4 border-t-primary">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Estimated Cost</h3>
+            <div className="flex items-end justify-between mb-4">
+              <div className="font-display text-5xl font-bold text-foreground">${plan.totalEstimatedCost.toLocaleString()}</div>
+              <div className="text-sm font-semibold text-muted-foreground pb-1">/ ${request.budget.toLocaleString()}</div>
+            </div>
+            
+            <div className="w-full bg-secondary rounded-full h-2.5 mb-2 overflow-hidden border border-border">
+              <motion.div
+                initial={{ width: 0 }} animate={{ width: `${budgetPct}%` }} transition={{ duration: 1.5, ease: "easeOut" }}
+                className={cn("h-full rounded-full", plan.budgetStatus === 'exceeded' ? "bg-destructive" : "bg-primary")}
+              />
+            </div>
+            <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+              <span className="text-muted-foreground">Budget Used</span>
+              <span className={plan.budgetStatus === 'exceeded' ? "text-destructive" : "text-primary"}>
+                {plan.budgetStatus}
+              </span>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-6 bg-gradient-to-br from-card to-primary/5">
+            <h3 className="font-display font-bold text-xl flex items-center gap-2 mb-6">
+              <Sparkles className="text-primary w-5 h-5" /> AI Optimization
+            </h3>
+            
+            <div className="bg-background/80 rounded-xl p-4 border border-border/50 mb-6 flex justify-between items-center shadow-inner">
+              <span className="text-sm font-bold text-muted-foreground">Estimated Savings</span>
+              <span className="font-display font-bold text-2xl text-green-500">${plan.optimization.savings}</span>
+            </div>
+            
+            <div>
+              <h4 className="font-bold text-sm text-foreground/80 mb-3">Key Agent Decisions:</h4>
+              <ul className="space-y-3">
+                {plan.optimization.decisions.map((dec, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-muted-foreground items-start">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <span className="leading-snug">{dec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Main Tabs Area */}
+        <div className="lg:col-span-8">
+          <div className="flex p-1.5 bg-secondary/50 backdrop-blur-md border border-border/50 rounded-2xl w-full sm:w-fit mb-8 overflow-x-auto">
+            {(['itinerary', 'transport', 'hotels'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "flex-1 sm:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 capitalize",
+                  activeTab === tab
+                    ? "bg-background text-foreground shadow-md border border-border/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+              transition={{ duration: 0.3 }}
+            >
+              {activeTab === 'itinerary' && <ItineraryTab plan={plan} />}
+              {activeTab === 'transport' && <TransportTab plan={plan} />}
+              {activeTab === 'hotels' && <HotelsTab plan={plan} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}

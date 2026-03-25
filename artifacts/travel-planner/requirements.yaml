@@ -1,0 +1,17 @@
+packages:
+  "framer-motion": "For fluid layout transitions, dashboard animations, and the immersive multi-agent loading screen"
+  "date-fns": "For elegant date parsing and formatting in the itinerary view"
+  "react-hook-form": "For robust and performant form state management"
+  "@hookform/resolvers": "For integrating Zod schema validation with react-hook-form"
+  "clsx": "For conditional class name joining"
+  "tailwind-merge": "For safe tailwind class merging"
+
+images:
+  - path: "artifacts/travel-planner/public/images/logo.png"
+    description: "Minimal modern geometric logo for an AI travel planner, combining a compass and an artificial intelligence spark or node, beautiful deep blue and cyan gradient, transparent background"
+    aspect_ratio: "1:1"
+
+notes:
+  - "Importing all API interaction hooks from the pre-generated @workspace/api-client-react package"
+  - "Using a slide-over drawer for Saved Trips instead of a separate page to provide a seamless app-like experience"
+  - "Using native date inputs for maximum cross-device compatibility and clean robust UI without complex dependency wires"

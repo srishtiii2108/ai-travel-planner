@@ -1,0 +1,192 @@
+Build a full-stack AI Travel Planner web application with a modern UI and a multi-agent architecture.
+
+### 🌍 CORE IDEA
+The app allows users to input:
+- Destination
+- Budget
+- Travel dates
+- Preferences (luxury, adventure, food, culture, etc.)
+- Number of travelers
+
+Based on this, the system generates:
+1. A detailed day-wise itinerary
+2. Real-time (or near real-time) travel options (flights, trains, buses)
+3. Hotel recommendations
+
+NOTE:
+- The app ONLY displays data. No booking functionality.
+- Focus on optimization based on budget.
+
+---
+
+### 🧠 MULTI-AGENT ARCHITECTURE
+
+Implement separate AI agents (modular functions/services):
+
+1. **Planner Agent**
+   - Generates a day-wise itinerary
+   - Uses destination + preferences
+   - Output: structured JSON itinerary
+
+2. **Transport Agent**
+   - Fetches flights, trains, buses
+   - Uses free APIs:
+     - Amadeus API (flights)
+     - RapidAPI alternatives (train/bus data)
+   - Filters options based on budget
+   - If budget is LOW:
+     - Prioritize trains/buses over flights
+
+3. **Accommodation Agent**
+   - Fetch hotels using:
+     - Booking.com API (RapidAPI) OR
+     - OpenTripMap / Geoapify / Google Places API
+   - Filter by:
+     - Budget
+     - Rating
+     - Location proximity
+   - If budget is LOW:
+     - Downgrade from 5-star → 3-star → budget stays
+
+4. **Optimization Agent (IMPORTANT)**
+   - Core decision-maker
+   - Adjusts plan dynamically:
+     - Switch flights → trains if cheaper
+     - Reduce hotel cost
+     - Optimize itinerary activities cost
+   - Ensures total plan stays within user budget
+
+5. **Coordinator Agent**
+   - Combines all outputs
+   - Produces final response:
+     - Itinerary + transport + hotels
+
+---
+
+### 💻 TECH STACK
+
+Frontend:
+- React.js (with Tailwind CSS)
+- Use modern UI/UX design
+- Include:
+  - Hero section with travel images
+  - Input form (destination, budget, etc.)
+  - Results dashboard
+
+Backend:
+- Node.js + Express
+- API orchestration layer
+- Handles agent communication
+
+AI:
+- Use OpenAI API (or similar)
+- Structured prompts for itinerary generation
+
+---
+
+### 🎨 UI REQUIREMENTS
+
+Make it visually appealing and user-friendly:
+
+- Use travel images (Unsplash API)
+- Cards layout:
+  - Day-wise itinerary cards
+  - Hotel cards (image + price + rating)
+  - Transport cards (mode + price + duration)
+
+- Add:
+  - Loading animations
+  - Budget indicator bar
+  - Tabs:
+    - Itinerary
+    - Transport
+    - Hotels
+
+---
+
+### 📊 DATA DISPLAY
+
+1. **Itinerary**
+   - Day 1, Day 2, etc.
+   - Activities, timings, estimated costs
+
+2. **Transport**
+   - Mode (Flight / Train / Bus)
+   - Price
+   - Duration
+   - Departure time
+
+3. **Hotels**
+   - Name
+   - Price per night
+   - Rating
+   - Location
+   - Image
+
+---
+
+### ⚙️ OPTIMIZATION LOGIC (CRITICAL)
+
+Implement rules:
+- If budget < threshold:
+  - Avoid flights
+  - Use trains/buses
+- If hotels exceed budget:
+  - Auto downgrade category
+- Ensure:
+  TOTAL COST ≤ USER BUDGET
+
+---
+
+### 🔌 FREE APIs TO USE
+
+- Flights: Amadeus API (free tier)
+- Hotels & Places:
+  - Geoapify Places API
+  - OpenTripMap API
+- Images: Unsplash API
+- Trains/Buses:
+  - RapidAPI (search free endpoints)
+
+---
+
+### 📦 OUTPUT FORMAT (IMPORTANT)
+
+Return structured JSON like:
+
+{
+  "itinerary": [...],
+  "transport": [...],
+  "hotels": [...],
+  "totalEstimatedCost": number,
+  "budgetStatus": "within" | "exceeded" | "optimized"
+}
+
+---
+
+### 🚀 EXTRA FEATURES
+
+- Budget slider
+- Dark/light mode
+- Save trip locally
+- Share itinerary button
+
+---
+
+### 🔐 NOTES
+
+- No payment integration
+- No booking system
+- Focus on recommendations only
+- Clean modular code
+- Use environment variables for API keys
+
+---
+
+### 🎯 GOAL
+
+Deliver a smart AI travel planner that:
+- Feels like a real product
+- Optimizes travel plans intelligently
+- Uses multi-agent reasoning
+- Looks visually stunning

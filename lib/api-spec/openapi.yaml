@@ -1,15 +1,16 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Travel Planner API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: travel
+    description: Travel planning operations
 paths:
   /healthz:
     get:
@@ -24,6 +25,103 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /travel/plan:
+    post:
+      operationId: generateTravelPlan
+      tags: [travel]
+      summary: Generate a full travel plan
+      description: Uses multi-agent AI to generate itinerary, transport options, and hotel recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelPlanRequest"
+      responses:
+        "200":
+          description: Travel plan generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TravelPlanResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /travel/saved:
+    get:
+      operationId: getSavedTrips
+      tags: [travel]
+      summary: Get all saved trips
+      description: Returns all locally saved travel plans
+      responses:
+        "200":
+          description: List of saved trips
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trips:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SavedTrip"
+                required:
+                  - trips
+
+    post:
+      operationId: saveTrip
+      tags: [travel]
+      summary: Save a travel plan
+      description: Saves a travel plan for later reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveTripRequest"
+      responses:
+        "201":
+          description: Trip saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedTrip"
+
+  /travel/saved/{id}:
+    delete:
+      operationId: deleteTrip
+      tags: [travel]
+      summary: Delete a saved trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trip deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +132,281 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+    TravelPlanRequest:
+      type: object
+      properties:
+        destination:
+          type: string
+          description: Travel destination (city, country)
+        budget:
+          type: number
+          description: Total budget in USD
+        startDate:
+          type: string
+          description: Start date (YYYY-MM-DD)
+        endDate:
+          type: string
+          description: End date (YYYY-MM-DD)
+        travelers:
+          type: integer
+          description: Number of travelers
+          minimum: 1
+        preferences:
+          type: array
+          items:
+            type: string
+          description: Travel preferences (luxury, adventure, food, culture, etc.)
+        origin:
+          type: string
+          description: Origin city for transport options
+      required:
+        - destination
+        - budget
+        - startDate
+        - endDate
+        - travelers
+        - preferences
+
+    ItineraryDay:
+      type: object
+      properties:
+        day:
+          type: integer
+        date:
+          type: string
+        theme:
+          type: string
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+        estimatedCost:
+          type: number
+      required:
+        - day
+        - date
+        - theme
+        - activities
+        - estimatedCost
+
+    Activity:
+      type: object
+      properties:
+        time:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        estimatedCost:
+          type: number
+        location:
+          type: string
+      required:
+        - time
+        - name
+        - description
+        - type
+        - estimatedCost
+        - location
+
+    TransportOption:
+      type: object
+      properties:
+        id:
+          type: string
+        mode:
+          type: string
+          enum: [flight, train, bus, ferry]
+        carrier:
+          type: string
+        departureTime:
+          type: string
+        arrivalTime:
+          type: string
+        duration:
+          type: string
+        price:
+          type: number
+        pricePerPerson:
+          type: number
+        class:
+          type: string
+        stops:
+          type: integer
+        isRecommended:
+          type: boolean
+      required:
+        - id
+        - mode
+        - carrier
+        - departureTime
+        - arrivalTime
+        - duration
+        - price
+        - pricePerPerson
+        - class
+        - stops
+        - isRecommended
+
+    HotelOption:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        rating:
+          type: number
+        stars:
+          type: integer
+        pricePerNight:
+          type: number
+        totalPrice:
+          type: number
+        location:
+          type: string
+        imageUrl:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        isRecommended:
+          type: boolean
+        category:
+          type: string
+          enum: [budget, mid-range, luxury]
+      required:
+        - id
+        - name
+        - rating
+        - stars
+        - pricePerNight
+        - totalPrice
+        - location
+        - imageUrl
+        - amenities
+        - description
+        - isRecommended
+        - category
+
+    OptimizationSummary:
+      type: object
+      properties:
+        decisions:
+          type: array
+          items:
+            type: string
+        savings:
+          type: number
+        budgetStatus:
+          type: string
+          enum: [within, exceeded, optimized]
+      required:
+        - decisions
+        - savings
+        - budgetStatus
+
+    TravelPlanResponse:
+      type: object
+      properties:
+        itinerary:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryDay"
+        transport:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransportOption"
+        hotels:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelOption"
+        totalEstimatedCost:
+          type: number
+        budgetStatus:
+          type: string
+          enum: [within, exceeded, optimized]
+        optimization:
+          $ref: "#/components/schemas/OptimizationSummary"
+        destination:
+          type: string
+        imageUrl:
+          type: string
+      required:
+        - itinerary
+        - transport
+        - hotels
+        - totalEstimatedCost
+        - budgetStatus
+        - optimization
+        - destination
+        - imageUrl
+
+    SaveTripRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        plan:
+          $ref: "#/components/schemas/TravelPlanResponse"
+        request:
+          $ref: "#/components/schemas/TravelPlanRequest"
+      required:
+        - name
+        - plan
+        - request
+
+    SavedTrip:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        budget:
+          type: number
+        totalCost:
+          type: number
+        budgetStatus:
+          type: string
+        plan:
+          $ref: "#/components/schemas/TravelPlanResponse"
+        request:
+          $ref: "#/components/schemas/TravelPlanRequest"
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - destination
+        - startDate
+        - endDate
+        - budget
+        - totalCost
+        - budgetStatus
+        - plan
+        - request
+        - createdAt
