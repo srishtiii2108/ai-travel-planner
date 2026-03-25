@@ -1,33 +1,47 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { 
   Sparkles, Mountain, Utensils, Landmark, Umbrella, 
   TreePine, GlassWater, ShoppingBag, Castle, Heart, 
-  Minus, Plus, MapPin, Plane, DollarSign, Calendar
+  Minus, Plus, MapPin, Train, IndianRupee, Calendar
 } from "lucide-react";
 import { PremiumButton, GlassCard } from "./shared";
 import { cn } from "@/lib/utils";
 import type { TravelPlanRequest } from "@workspace/api-client-react";
 
+const INDIAN_CITIES = [
+  "Agra", "Ahmedabad", "Ajmer", "Allahabad", "Amritsar",
+  "Aurangabad", "Bangalore", "Bengaluru", "Bhubaneswar", "Chandigarh",
+  "Chennai", "Coimbatore", "Darjeeling", "Dehradun", "Delhi",
+  "Dharamshala", "Goa", "Guwahati", "Hampi", "Haridwar",
+  "Hyderabad", "Indore", "Jaipur", "Jaisalmer", "Jodhpur",
+  "Kochi", "Kodaikanal", "Kolkata", "Kovalam", "Leh",
+  "Lucknow", "Madurai", "Manali", "Mumbai", "Mussoorie",
+  "Mysore", "Mysuru", "Nagpur", "Nainital", "New Delhi",
+  "Ooty", "Puri", "Puducherry", "Pune", "Raipur",
+  "Rajkot", "Rishikesh", "Shimla", "Srinagar", "Surat",
+  "Thiruvananthapuram", "Udaipur", "Vadodara", "Varanasi", "Visakhapatnam"
+];
+
 const PREFERENCES = [
-  { id: 'luxury', label: 'Luxury', icon: Sparkles },
+  { id: 'heritage', label: 'Heritage', icon: Castle },
   { id: 'adventure', label: 'Adventure', icon: Mountain },
-  { id: 'food', label: 'Food & Dining', icon: Utensils },
+  { id: 'food', label: 'Food & Cuisine', icon: Utensils },
   { id: 'culture', label: 'Culture', icon: Landmark },
   { id: 'beach', label: 'Beach', icon: Umbrella },
   { id: 'nature', label: 'Nature', icon: TreePine },
   { id: 'nightlife', label: 'Nightlife', icon: GlassWater },
   { id: 'shopping', label: 'Shopping', icon: ShoppingBag },
-  { id: 'history', label: 'History', icon: Castle },
+  { id: 'temples', label: 'Temples', icon: Sparkles },
   { id: 'wellness', label: 'Wellness', icon: Heart },
 ];
 
 const formSchema = z.object({
-  destination: z.string().min(2, "Destination is required"),
+  destination: z.string().min(2, "Please select an Indian city"),
   origin: z.string().optional(),
-  budget: z.coerce.number().min(100, "Minimum budget is $100"),
+  budget: z.coerce.number().min(5000, "Minimum budget is ₹5,000"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   travelers: z.coerce.number().min(1).max(20),
@@ -41,13 +55,67 @@ interface TravelFormProps {
   onSubmit: (data: TravelPlanRequest) => void;
 }
 
+function CityAutocomplete({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = query.length >= 1
+    ? INDIAN_CITIES.filter(c => c.toLowerCase().startsWith(query.toLowerCase())).slice(0, 8)
+    : INDIAN_CITIES.slice(0, 8);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const showDropdown = focused && open && filtered.length > 0;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); setOpen(true); onChange(e.target.value); }}
+        onFocus={() => { setFocused(true); setOpen(true); }}
+        placeholder="e.g. Jaipur, Goa, Kerala..."
+        className={cn(
+          "w-full px-5 py-4 text-lg rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground",
+          error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+        )}
+        autoComplete="off"
+      />
+      {showDropdown && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border border-border rounded-xl shadow-xl overflow-hidden">
+          {filtered.map(city => (
+            <button
+              key={city}
+              type="button"
+              onMouseDown={e => { e.preventDefault(); setQuery(city); onChange(city); setOpen(false); setFocused(false); }}
+              className="w-full text-left px-5 py-3 hover:bg-primary/10 text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              <MapPin className="w-3.5 h-3.5 text-primary" /> {city}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TravelForm({ onSubmit }: TravelFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       destination: "",
       origin: "",
-      budget: 2500,
+      budget: 25000,
       startDate: "",
       endDate: "",
       travelers: 2,
@@ -63,6 +131,11 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
     onSubmit(payload);
   };
 
+  const budgetValue = form.watch("budget");
+  
+  const budgetLabel = budgetValue < 10000 ? "Budget" : budgetValue < 30000 ? "Mid-Range" : "Premium";
+  const budgetColor = budgetValue < 10000 ? "text-green-500" : budgetValue < 30000 ? "text-amber-500" : "text-primary";
+
   return (
     <GlassCard className="p-6 md:p-10 max-w-5xl mx-auto w-full mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <form onSubmit={form.handleSubmit(handleValidSubmit)} className="space-y-8">
@@ -74,14 +147,13 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
             name="destination"
             render={({ field, fieldState }) => (
               <div className="space-y-2">
-                <label className="text-sm font-bold flex items-center gap-2"><MapPin className="w-4 h-4 text-primary"/> Where to?</label>
-                <input 
-                  {...field} 
-                  placeholder="e.g. Kyoto, Japan" 
-                  className={cn(
-                    "w-full px-5 py-4 text-lg rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground",
-                    fieldState.error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
-                  )} 
+                <label className="text-sm font-bold flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary"/> Destination (India Only 🇮🇳)
+                </label>
+                <CityAutocomplete
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
                 />
                 {fieldState.error && <p className="text-destructive text-xs font-medium">{fieldState.error.message}</p>}
               </div>
@@ -92,12 +164,14 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
             name="origin"
             render={({ field }) => (
               <div className="space-y-2">
-                <label className="text-sm font-bold flex items-center gap-2 text-foreground/80"><Plane className="w-4 h-4 text-primary"/> Origin (Optional)</label>
-                <input 
-                  {...field} 
-                  placeholder="e.g. New York, USA" 
-                  className="w-full px-5 py-4 text-lg rounded-xl bg-background/80 border-2 border-border focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/50" 
+                <label className="text-sm font-bold flex items-center gap-2 text-foreground/80">
+                  <Train className="w-4 h-4 text-primary"/> Travelling From (Optional)
+                </label>
+                <CityAutocomplete
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
                 />
+                <p className="text-xs text-muted-foreground">For flight & train recommendations</p>
               </div>
             )}
           />
@@ -116,9 +190,10 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
                 <input 
                   type="date"
                   {...field} 
+                  min={new Date().toISOString().split('T')[0]}
                   className={cn(
                     "w-full px-4 py-3 rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer",
-                    fieldState.error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+                    fieldState.error ? "border-destructive" : "border-border focus:border-primary"
                   )} 
                 />
                 {fieldState.error && <p className="text-destructive text-xs font-medium">{fieldState.error.message}</p>}
@@ -134,9 +209,10 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
                 <input 
                   type="date"
                   {...field} 
+                  min={form.watch("startDate") || new Date().toISOString().split('T')[0]}
                   className={cn(
                     "w-full px-4 py-3 rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer",
-                    fieldState.error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
+                    fieldState.error ? "border-destructive" : "border-border focus:border-primary"
                   )} 
                 />
                 {fieldState.error && <p className="text-destructive text-xs font-medium">{fieldState.error.message}</p>}
@@ -182,21 +258,26 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
               render={({ field }) => (
                 <div className="space-y-4 bg-background/50 p-6 rounded-2xl border border-border/50">
                   <div className="flex justify-between items-center">
-                    <label className="font-bold flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary"/> Total Budget</label>
-                    <span className="font-display font-bold text-3xl text-primary">${field.value.toLocaleString()}</span>
+                    <label className="font-bold flex items-center gap-2">
+                      <IndianRupee className="w-5 h-5 text-primary"/> Total Budget
+                    </label>
+                    <div className="text-right">
+                      <span className="font-display font-bold text-3xl text-primary">₹{field.value.toLocaleString('en-IN')}</span>
+                      <span className={cn("ml-2 text-xs font-bold uppercase", budgetColor)}>{budgetLabel}</span>
+                    </div>
                   </div>
                   <input
                     type="range"
-                    min={100}
-                    max={20000}
-                    step={100}
+                    min={5000}
+                    max={500000}
+                    step={1000}
                     value={field.value}
                     onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
                     className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                    <span>$100</span>
-                    <span>$20,000+</span>
+                    <span>₹5,000</span>
+                    <span>₹5,00,000+</span>
                   </div>
                 </div>
               )}
@@ -247,7 +328,7 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
         <div className="pt-4 flex justify-end">
           <PremiumButton type="submit" size="lg" className="w-full md:w-auto text-lg px-12 group">
             <Sparkles className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-            Generate AI Trip Plan
+            Generate AI Travel Plan 🇮🇳
           </PremiumButton>
         </div>
       </form>

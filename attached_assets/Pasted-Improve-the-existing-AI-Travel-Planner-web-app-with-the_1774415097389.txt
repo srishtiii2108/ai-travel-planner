@@ -1,0 +1,233 @@
+Improve the existing AI Travel Planner web app with the following corrections and enhancements.
+
+---
+
+### 🔐 1. AUTHENTICATION SYSTEM (IMPORTANT)
+
+Add a login/signup system:
+
+- Users must sign up using:
+  - Email
+  - Password
+
+- Use:
+  - Firebase Auth OR JWT-based authentication
+
+- Features:
+  - Login / Signup pages
+  - Persistent sessions
+  - Logout option
+
+- After login:
+  - User can SAVE trips
+  - Trips should be stored in database (Firebase Firestore / MongoDB)
+
+Trip data should include:
+- Destination
+- Budget
+- Dates
+- Preferences
+- Generated itinerary
+- Transport options
+- Hotels
+
+---
+
+### 🇮🇳 2. INDIA-ONLY SYSTEM
+
+Restrict the entire app to India:
+
+- Destination input:
+  - Only allow Indian cities (use dropdown or autocomplete)
+
+- Transport:
+  - Focus on:
+    - Flights (domestic only)
+    - Trains (Indian Railways)
+    - Buses (optional)
+
+- Currency:
+  - EVERYTHING must be in INR (₹)
+  - Convert API data if needed
+
+---
+
+### 🧠 3. FIX ITINERARY GENERATION (CRITICAL)
+
+The itinerary is currently not generating → FIX THIS.
+
+Implement:
+
+- A dedicated **Itinerary AI Agent**
+- Use OpenAI API properly
+
+Prompt format for itinerary agent:
+
+"Generate a detailed day-wise travel itinerary for [destination in India] for [X days] within a budget of ₹[budget]. Include:
+- Morning, afternoon, evening activities
+- Famous places
+- Food recommendations
+- Estimated cost per day
+- Travel tips"
+
+Return STRICT JSON:
+
+{
+  "days": [
+    {
+      "day": 1,
+      "title": "Arrival and Local Exploration",
+      "activities": [
+        {
+          "time": "Morning",
+          "description": "...",
+          "cost": 500
+        }
+      ],
+      "dailyCost": 2000
+    }
+  ]
+}
+
+---
+
+### 🚆✈️ 4. TRANSPORT DATA (MAKE USER-FRIENDLY)
+
+Current issue: raw/unreadable data → FIX UI + structure
+
+- Clean format like cards:
+
+Each transport option must show:
+- Mode: Flight / Train
+- Name (Flight No / Train Name)
+- Departure → Arrival
+- Duration
+- Price (₹)
+- Class (Sleeper / AC / Economy)
+
+- For trains (India):
+  - Prefer train APIs from RapidAPI (Indian Railways)
+
+- Add filtering:
+  - Cheapest
+  - Fastest
+  - Recommended
+
+- UI:
+  - Use icons:
+    - ✈️ Flights
+    - 🚆 Trains
+
+---
+
+### 🏨 5. HOTELS (IMPROVE FILTERING)
+
+- Show:
+  - Hotel name
+  - Price per night (₹)
+  - Rating
+  - Area
+  - Image
+
+- Budget optimization:
+  - If budget is LOW:
+    → Show budget hotels (₹500–₹2000)
+  - If MEDIUM:
+    → Mid-range hotels
+  - If HIGH:
+    → Premium stays
+
+---
+
+### ⚙️ 6. OPTIMIZATION AGENT (MAKE STRONGER)
+
+Implement clear logic:
+
+IF total cost > budget:
+  - Step 1: Replace flights with trains
+  - Step 2: Reduce hotel cost
+  - Step 3: Reduce expensive activities
+
+Ensure:
+FINAL COST ≤ USER BUDGET
+
+Add:
+- Budget usage bar:
+  - Green = within budget
+  - Yellow = near limit
+  - Red = exceeded
+
+---
+
+### 🎨 7. UI IMPROVEMENTS
+
+Make everything clean and modern:
+
+- Add:
+  - Dashboard after login
+  - “My Trips” section (saved trips)
+
+- Layout:
+  Tabs:
+  - Itinerary
+  - Transport
+  - Hotels
+
+- Use:
+  - Cards
+  - Icons
+  - Images (Unsplash API)
+
+- Add loading states:
+  - “Generating itinerary...”
+  - “Fetching trains...”
+
+---
+
+### 💾 8. SAVE & LOAD TRIPS
+
+- Button: “Save Trip”
+- Store in DB
+
+- “My Trips” page:
+  - List of saved trips
+  - Click → reload full plan
+
+---
+
+### 📊 9. FINAL OUTPUT FORMAT
+
+Ensure backend sends:
+
+{
+  "destination": "Jaipur",
+  "budget": 15000,
+  "currency": "INR",
+  "itinerary": [...],
+  "transport": [...],
+  "hotels": [...],
+  "totalEstimatedCost": 13200,
+  "status": "within_budget"
+}
+
+---
+
+### 🚀 10. FINAL GOAL
+
+The app should feel like a real Indian travel planner:
+
+- Works ONLY for India 🇮🇳
+- Uses ₹ everywhere
+- Generates proper itinerary
+- Shows clean transport options (not raw JSON)
+- Allows login + saving trips
+- Optimizes intelligently
+
+---
+
+### ⚠️ IMPORTANT
+
+- Fix existing bugs, don’t rebuild from scratch
+- Clean code structure
+- Use environment variables for API keys
+- Handle API failures gracefully

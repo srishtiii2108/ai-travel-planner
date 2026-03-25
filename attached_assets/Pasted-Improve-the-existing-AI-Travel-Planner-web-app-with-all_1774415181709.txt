@@ -1,0 +1,163 @@
+Improve the existing AI Travel Planner web app with all the following corrections and enhancements. Generate clean, portable code that can run locally in VS Code.
+
+---
+
+### 🔐 1. AUTHENTICATION SYSTEM
+
+- Add login/signup system:
+  - Email + password
+  - Persistent sessions
+  - Logout option
+- Use Firebase Auth or JWT-based authentication
+- After login:
+  - User can SAVE trips
+  - Trips stored in database (Firebase Firestore / MongoDB)
+- Trip data includes:
+  - Destination
+  - Budget
+  - Dates
+  - Preferences
+  - Generated itinerary
+  - Transport options
+  - Hotels
+
+---
+
+### 🇮🇳 2. INDIA-ONLY SYSTEM
+
+- Destination input limited to Indian cities (dropdown/autocomplete)
+- Travel options restricted to:
+  - Domestic flights
+  - Trains (Indian Railways)
+  - Optional buses
+- All currency in INR (₹)
+- Convert API data to INR if needed
+
+---
+
+### 🧠 3. FIX ITINERARY GENERATION
+
+- Dedicated **Itinerary AI Agent** must generate day-wise plans
+- Use OpenAI API with prompt:
+
+"Generate a detailed day-wise travel itinerary for [destination in India] for [X days] within a budget of ₹[budget]. Include morning, afternoon, evening activities, famous places, food, estimated cost per day, travel tips"
+
+- Strict JSON format:
+
+{
+  "days": [
+    {
+      "day": 1,
+      "title": "Arrival and Local Exploration",
+      "activities": [
+        {"time": "Morning", "description": "...", "cost": 500}
+      ],
+      "dailyCost": 2000
+    }
+  ]
+}
+
+---
+
+### 🚆✈️ 4. TRANSPORT DATA
+
+- Make data user-friendly and readable
+- Display each option in cards:
+  - Mode: Flight / Train
+  - Name / Number
+  - Departure → Arrival
+  - Duration
+  - Price in ₹
+  - Class (Sleeper / AC / Economy)
+- Filtering: Cheapest, Fastest, Recommended
+- UI: use icons ✈️ / 🚆
+- If budget low → prioritize trains
+
+---
+
+### 🏨 5. HOTELS
+
+- Show:
+  - Name
+  - Price per night (₹)
+  - Rating
+  - Location
+  - Image
+- Budget optimization:
+  - Low → budget hotels (₹500–₹2000)
+  - Medium → mid-range
+  - High → premium
+
+---
+
+### ⚙️ 6. OPTIMIZATION AGENT
+
+- Logic:
+  1. Total cost > budget → replace flights with trains
+  2. Reduce hotel cost
+  3. Reduce expensive activities
+- Budget bar:
+  - Green = within
+  - Yellow = near limit
+  - Red = exceeded
+
+---
+
+### 🎨 7. UI IMPROVEMENTS
+
+- Modern, clean, user-friendly
+- Dashboard after login
+- “My Trips” section
+- Tabs: Itinerary, Transport, Hotels
+- Cards, icons, images
+- Loading states: "Generating itinerary...", "Fetching trains..."
+
+---
+
+### 💾 8. SAVE & LOAD TRIPS
+
+- Button: “Save Trip”
+- Store in DB
+- “My Trips” page: list saved trips → click to reload full plan
+
+---
+
+### 📊 9. FINAL OUTPUT FORMAT
+
+{
+  "destination": "Jaipur",
+  "budget": 15000,
+  "currency": "INR",
+  "itinerary": [...],
+  "transport": [...],
+  "hotels": [...],
+  "totalEstimatedCost": 13200,
+  "status": "within_budget"
+}
+
+---
+
+### 💻 10. PORTABILITY REQUIREMENT (NEW)
+
+- Do NOT save or reference any files with “replit” in their name
+- All code must run **locally in VS Code**
+- Use environment variables for API keys
+- Handle API failures gracefully
+- Clean folder structure: 
+  - frontend/
+  - backend/
+  - config/
+  - assets/
+- No platform-specific dependencies that prevent running locally
+
+---
+
+### 🚀 11. FINAL GOAL
+
+- Works only for India 🇮🇳
+- Uses ₹ everywhere
+- Generates proper itinerary
+- Shows readable transport options
+- Allows login + saving trips
+- Optimizes intelligently
+- Clean, portable code runnable in VS Code

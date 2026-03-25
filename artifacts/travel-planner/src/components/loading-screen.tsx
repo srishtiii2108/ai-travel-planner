@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, BrainCircuit, Route, Home, LineChart, CheckCircle2 } from "lucide-react";
+import { Sparkles, BrainCircuit, Route, Home, LineChart, CheckCircle2, Train } from "lucide-react";
 
 const AGENT_STEPS = [
-  { text: "Coordinator Agent analyzing request...", icon: BrainCircuit },
-  { text: "Planner Agent mapping destinations...", icon: Route },
-  { text: "Accommodation Agent finding stays...", icon: Home },
-  { text: "Transport Agent calculating routes...", icon: Route },
-  { text: "Optimization Agent finalizing budget...", icon: LineChart },
-  { text: "Preparing your perfect itinerary...", icon: Sparkles },
+  { text: "Coordinator Agent analysing your India trip...", icon: BrainCircuit },
+  { text: "Planner Agent mapping destinations & activities...", icon: Route },
+  { text: "Accommodation Agent finding the best stays...", icon: Home },
+  { text: "Transport Agent sourcing Indian Railways routes...", icon: Train },
+  { text: "Optimization Agent balancing your ₹ budget...", icon: LineChart },
+  { text: "Preparing your personalised itinerary...", icon: Sparkles },
 ];
 
 export function LoadingScreen() {
@@ -25,26 +25,20 @@ export function LoadingScreen() {
 
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center relative w-full overflow-hidden py-20">
-      
-      {/* Background glow effects */}
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-accent/10 rounded-full blur-[80px] animate-pulse delay-700" />
 
       <div className="relative z-10 w-full max-w-xl mx-auto px-6 flex flex-col items-center">
-        
-        {/* Center Icon */}
-        <motion.div 
+
+        <motion.div
           className="w-24 h-24 bg-card border-2 border-primary/30 rounded-3xl shadow-2xl shadow-primary/20 flex items-center justify-center mb-10"
-          animate={{ 
-            rotateY: [0, 180, 360],
-            scale: [1, 1.05, 1]
-          }}
+          animate={{ rotateY: [0, 180, 360], scale: [1, 1.05, 1] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
           <CurrentIcon className="w-10 h-10 text-primary" />
         </motion.div>
 
-        {/* Dynamic Text */}
         <div className="h-16 flex items-center justify-center mb-8">
           <AnimatePresence mode="wait">
             <motion.p
@@ -52,23 +46,22 @@ export function LoadingScreen() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="text-2xl md:text-3xl font-display font-bold text-center text-foreground"
+              className="text-xl md:text-2xl font-display font-bold text-center text-foreground"
             >
               {AGENT_STEPS[stepIndex].text}
             </motion.p>
           </AnimatePresence>
         </div>
 
-        {/* Progress List */}
-        <div className="w-full space-y-4 bg-card/50 backdrop-blur-md p-6 rounded-2xl border border-border/50">
+        <div className="w-full space-y-3 bg-card/50 backdrop-blur-md p-6 rounded-2xl border border-border/50">
           {AGENT_STEPS.map((step, idx) => {
             const isCompleted = idx < stepIndex;
             const isCurrent = idx === stepIndex;
             const isPending = idx > stepIndex;
 
             return (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={`flex items-center gap-4 transition-all duration-500 ${isCurrent ? 'opacity-100 scale-105' : isPending ? 'opacity-30' : 'opacity-70'}`}
               >
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center">

@@ -38,45 +38,50 @@ export async function accommodationAgent(input: AccommodationInput): Promise<Hot
   const nights = Math.max(1, Math.ceil(
     (new Date(input.endDate).getTime() - new Date(input.startDate).getTime()) / (1000 * 60 * 60 * 24)
   ));
-  const hotelBudget = input.budget * 0.4;
-  const budgetPerNight = hotelBudget / nights;
+  const hotelBudget = Math.round(input.budget * 0.35);
+  const budgetPerNight = Math.round(hotelBudget / nights);
 
-  const prompt = `You are a hotel specialist. Generate realistic hotel recommendations for a trip.
+  let hotelCategory = "mid-range";
+  if (budgetPerNight < 2000) hotelCategory = "budget (₹500-₹2000/night guesthouses, hostels, dharamshalas)";
+  else if (budgetPerNight < 5000) hotelCategory = "mid-range (₹2000-₹5000/night 3-star hotels)";
+  else hotelCategory = "premium (₹5000+/night 4-5 star hotels)";
+
+  const prompt = `You are an Indian hotel specialist. Generate realistic hotel recommendations for ${input.destination}, India.
 
 Trip Details:
-- Destination: ${input.destination}
+- Destination: ${input.destination}, India
 - Check-in: ${input.startDate}
 - Check-out: ${input.endDate}
 - Nights: ${nights}
 - Travelers: ${input.travelers}
-- Budget per night: $${Math.round(budgetPerNight)} (40% of total budget)
-- Budget Priority: ${input.preferLow ? "Low cost - prefer 2-3 star budget hotels" : "Balanced - mix of options"}
+- Budget per night: ₹${budgetPerNight}
+- Category: ${hotelCategory}
 - Preferences: ${input.preferences.join(", ")}
 
-Generate 4-5 hotel options. If budget is low, prioritize budget hotels and hostels (2-3 stars). Include a mix of categories.
+Generate 4-5 real-sounding Indian hotel options with authentic names. For budget trips, include guesthouses, OYO rooms, and dharamshalas. For mid-range, include popular hotel chains. For luxury, include 5-star properties.
 
-Return a JSON object with a "hotels" array:
+Return JSON:
 {
   "hotels": [
     {
       "id": "h1",
       "name": "Hotel Name",
       "rating": 4.2,
-      "stars": 4,
-      "pricePerNight": price_per_night,
-      "totalPrice": price_per_night_times_nights,
-      "location": "Neighborhood, City",
+      "stars": 3,
+      "pricePerNight": price_in_INR,
+      "totalPrice": price_per_night_times_${nights}_nights,
+      "location": "Neighborhood, ${input.destination}",
       "imageUrl": "",
-      "amenities": ["WiFi", "Pool", "Restaurant", "Gym"],
-      "description": "Brief compelling description of the hotel",
+      "amenities": ["Free WiFi", "AC", "Breakfast Included", "Room Service"],
+      "description": "Brief authentic description mentioning location advantages",
       "isRecommended": false,
       "category": "budget|mid-range|luxury"
     }
   ]
 }
 
-Only one hotel should have isRecommended: true (the best value for the budget).
-Leave imageUrl as empty string "".
+Only one hotel should have isRecommended: true (best value for budget).
+Leave imageUrl as empty string "". All prices in INR (₹).
 Return ONLY valid JSON, no markdown.`;
 
   const response = await openai.chat.completions.create({
