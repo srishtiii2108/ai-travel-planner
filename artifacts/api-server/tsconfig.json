@@ -6,8 +6,8 @@
     "types": ["node"],
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "bundler"
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["src"]
 }
