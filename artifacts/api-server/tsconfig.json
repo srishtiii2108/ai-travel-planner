@@ -5,8 +5,7 @@
     "rootDir": "src",
     "types": ["node"],
     "skipLibCheck": true,
-    "module": "CommonJS",
-    "moduleResolution": "node"
+    "esModuleInterop": true
   },
   "include": ["src"]
 }
