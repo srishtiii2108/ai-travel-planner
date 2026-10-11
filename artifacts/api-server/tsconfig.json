@@ -6,12 +6,11 @@
     "types": ["node"],
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "strict": false,
-    "noEmitOnError": false,
-    "suppressImplicitAnyIndexErrors": true
+    "noEmitOnError": false
   },
   "include": ["src"]
 }
