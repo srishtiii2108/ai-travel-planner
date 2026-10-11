@@ -157,10 +157,13 @@ export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: `${plan.destination} Adventure`, plan, request })
       });
+      if (!response.ok) throw new Error("Failed to save trip");
       const saved = await response.json();
       const tripId = saved.id;
-      const ngrokUrl = "https://laurel-oneirocritical-yan.ngrok-free.dev";
-      const shareUrl = `${ngrokUrl}/trip/${tripId}`;
+      // Build the link from the site the user is on right now (works on
+      // localhost, Vercel preview and production without any config).
+      const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const shareUrl = `${window.location.origin}${basePath}/trip/${tripId}`;
       const text = `Check out my AI-planned trip to ${plan.destination}!
 Estimated Cost: ${INR(plan.totalEstimatedCost)}
 ${plan.itinerary?.length ?? 0} Days of exploration.
@@ -173,17 +176,6 @@ ${shareUrl}`;
     } catch {
       toast({ title: "Error", description: "Failed to generate share link.", variant: "destructive" });
     }
-  };
-  const handleShareOld = () => {
-    const text = `Check out my AI-planned trip to ${plan.destination}!
-Estimated Cost: ${INR(plan.totalEstimatedCost)}
-${plan.itinerary.length} Days of exploration.
-
-Planned with WanderAI — India Edition 🇮🇳
-
-https://laurel-oneirocritical-yan.ngrok-free.dev`;
-    navigator.clipboard.writeText(text);
-    toast({ title: "📋 Copied!", description: "Share your itinerary with friends and family." });
   };
 
   const budgetPct = Math.min(100, Math.max(0, (plan.totalEstimatedCost / request.budget) * 100));
