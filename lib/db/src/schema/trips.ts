@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, integer, jsonb, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -14,6 +14,9 @@ export const tripsTable = pgTable("trips", {
   plan: jsonb("plan").notNull(),
   request: jsonb("request").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Owner of the trip (users.id). Nullable so trips saved before this column
+  // existed keep working; they simply don't belong to anybody.
+  userId: varchar("user_id"),
 });
 
 export const insertTripSchema = createInsertSchema(tripsTable).omit({ id: true, createdAt: true });
