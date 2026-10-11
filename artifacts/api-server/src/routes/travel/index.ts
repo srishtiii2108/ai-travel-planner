@@ -96,6 +96,38 @@ router.post("/saved", async (req, res) => {
   }
 });
 
+router.get("/saved/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Bad Request", message: "Invalid trip ID" });
+      return;
+    }
+    const trips = await db.select().from(tripsTable).where(eq(tripsTable.id, id));
+    const trip = trips[0];
+    if (!trip) {
+      res.status(404).json({ error: "Not Found", message: "Trip not found" });
+      return;
+    }
+    res.json({
+      id: trip.id,
+      name: trip.name,
+      destination: trip.destination,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      budget: Number(trip.budget),
+      totalCost: Number(trip.totalCost),
+      budgetStatus: trip.budgetStatus,
+      plan: trip.plan,
+      request: trip.request,
+      createdAt: trip.createdAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error fetching trip");
+    res.status(500).json({ error: "Internal Server Error", message: "Failed to fetch trip" });
+  }
+});
+
 router.delete("/saved/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);

@@ -12,17 +12,23 @@ import { cn } from "@/lib/utils";
 import type { TravelPlanRequest } from "@workspace/api-client-react";
 
 const INDIAN_CITIES = [
-  "Agra", "Ahmedabad", "Ajmer", "Allahabad", "Amritsar",
-  "Aurangabad", "Bangalore", "Bengaluru", "Bhubaneswar", "Chandigarh",
-  "Chennai", "Coimbatore", "Darjeeling", "Dehradun", "Delhi",
-  "Dharamshala", "Goa", "Guwahati", "Hampi", "Haridwar",
-  "Hyderabad", "Indore", "Jaipur", "Jaisalmer", "Jodhpur",
-  "Kochi", "Kodaikanal", "Kolkata", "Kovalam", "Leh",
-  "Lucknow", "Madurai", "Manali", "Mumbai", "Mussoorie",
-  "Mysore", "Mysuru", "Nagpur", "Nainital", "New Delhi",
-  "Ooty", "Puri", "Puducherry", "Pune", "Raipur",
-  "Rajkot", "Rishikesh", "Shimla", "Srinagar", "Surat",
-  "Thiruvananthapuram", "Udaipur", "Vadodara", "Varanasi", "Visakhapatnam"
+  "Agra", "Ahmedabad", "Aizawl", "Ajmer", "Allahabad", "Amritsar",
+  "Andaman Islands", "Aurangabad", "Bangalore", "Bengaluru", "Bhubaneswar",
+  "Bodh Gaya", "Chandigarh", "Chennai", "Cherrapunji", "Coimbatore",
+  "Coorg", "Darjeeling", "Dehradun", "Delhi", "Dharamshala",
+  "Dibrugarh", "Dispur", "Dwarka", "Gangtok", "Goa",
+  "Guwahati", "Hampi", "Haridwar", "Hyderabad", "Imphal",
+  "Indore", "Itanagar", "Jaipur", "Jaisalmer", "Jammu",
+  "Jodhpur", "Jorhat", "Kaziranga", "Kochi", "Kodaikanal",
+  "Kohima", "Kolkata", "Konark", "Kovalam", "Leh",
+  "Lucknow", "Madurai", "Majuli", "Manali", "Meghalaya",
+  "Mumbai", "Munnar", "Mussoorie", "Mysore", "Mysuru",
+  "Nagaland", "Nagpur", "Nainital", "New Delhi", "Ooty",
+  "Pachmarhi", "Pelling", "Pondicherry", "Puducherry", "Pune",
+  "Puri", "Raipur", "Rajkot", "Rishikesh", "Shillong",
+  "Shimla", "Sikkim", "Siliguri", "Srinagar", "Surat",
+  "Tawang", "Thiruvananthapuram", "Thrissur", "Udaipur", "Vadodara",
+  "Varanasi", "Visakhapatnam", "Vrindavan", "Ziro"
 ];
 
 const PREFERENCES = [
@@ -86,7 +92,7 @@ function CityAutocomplete({ value, onChange, error }: { value: string; onChange:
         onFocus={() => { setFocused(true); setOpen(true); }}
         placeholder="e.g. Jaipur, Goa, Kerala..."
         className={cn(
-          "w-full px-5 py-4 text-lg rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground",
+          "w-full px-5 py-4 text-lg rounded-xl bg-background/80 border-2 focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground hover:border-primary/50",
           error ? "border-destructive focus:border-destructive" : "border-border focus:border-primary"
         )}
         autoComplete="off"
@@ -306,7 +312,7 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
                             }
                           }}
                           className={cn(
-                            "px-4 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-200 flex items-center gap-2",
+                            "px-4 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95",
                             isSelected
                               ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
                               : "bg-background/80 text-foreground/70 border-border hover:border-primary/40 hover:text-foreground"
@@ -326,7 +332,7 @@ export function TravelForm({ onSubmit }: TravelFormProps) {
         </div>
 
         <div className="pt-4 flex justify-end">
-          <PremiumButton type="submit" size="lg" className="w-full md:w-auto text-lg px-12 group">
+          <PremiumButton type="submit" size="lg" className="w-full md:w-auto text-lg px-12 group hover:scale-105 active:scale-95 transition-all duration-300 shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40">
             <Sparkles className="w-5 h-5 mr-2 group-hover:animate-pulse" />
             Generate AI Travel Plan 🇮🇳
           </PremiumButton>

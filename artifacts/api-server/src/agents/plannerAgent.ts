@@ -1,4 +1,6 @@
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { CohereClient } from "cohere-ai";
+
+const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 export interface Activity {
   time: string;
@@ -69,19 +71,25 @@ Return a JSON object with "itinerary" array. Each day must have:
 }
 
 Make it authentic to Indian culture, include famous landmarks, street food, local markets, and temples/monuments. All prices in INR.
-Return ONLY valid JSON, no markdown.`;
+CRITICAL RULES:
+1. Return ONLY a valid JSON object, nothing else
+2. All estimatedCost must be plain integers (e.g. 1500, not 300*5)
+3. Always close all brackets and braces properly
+4. The JSON must end with }
+5. No markdown, no backticks, no comments
+6. Keep itinerary to maximum 7 days
+7. activities array must use square brackets []`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
-    max_completion_tokens: 8192,
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
+  const response = await cohere.chat({
+    model: "command-r-08-2024",
+    message: prompt,
   });
 
-  const content = response.choices[0]?.message?.content ?? "{}";
+  let rawContent = response.text;
+  rawContent = rawContent.replace(/```json\n?/gi, '').replace(/```/gi, '').trim();
   
   try {
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(rawContent);
     const itinerary = parsed.itinerary ?? parsed.days ?? (Array.isArray(parsed) ? parsed : []);
     return itinerary;
   } catch {

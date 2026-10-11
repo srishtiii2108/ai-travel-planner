@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, Share, Sparkles, CheckCircle2, Calendar, Users, ArrowLeft } from "lucide-react";
+import { Save, Share, Sparkles, CheckCircle2, Calendar, Users, ArrowLeft, FileDown } from "lucide-react";
 import { PremiumButton, GlassCard } from "../shared";
 import { ItineraryTab } from "./itinerary-tab";
 import { TransportTab } from "./transport-tab";
 import { HotelsTab } from "./hotels-tab";
+import { WeatherTab } from "./weather-tab";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useSaveTrip, getGetSavedTripsQueryKey } from "@/hooks/use-travel";
@@ -21,7 +22,7 @@ interface ResultsDashboardProps {
 }
 
 export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'itinerary' | 'transport' | 'hotels'>('itinerary');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'transport' | 'hotels' | 'weather'>('itinerary');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -47,8 +48,140 @@ export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProp
     });
   };
 
-  const handleShare = () => {
-    const text = `Check out my AI-planned trip to ${plan.destination}!\nEstimated Cost: ${INR(plan.totalEstimatedCost)}\n${plan.itinerary.length} Days of exploration.\n\nPlanned with WanderAI — India Edition 🇮🇳`;
+
+  const handleDownloadPDF = () => {
+    const itinerary = plan.itinerary ?? [];
+    const destination = plan.destination ?? "Trip";
+    const dates = `${request.startDate} to ${request.endDate}`;
+    const travelers = request.travelers;
+    const totalCost = INR(plan.totalEstimatedCost ?? 0);
+
+    let html = `
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>WanderAI - ${destination} Itinerary</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #1a1a1a; max-width: 900px; margin: 0 auto; }
+          h1 { color: #FF6B35; font-size: 28px; margin-bottom: 4px; }
+          .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+          .meta { background: #f9f9f9; border-radius: 8px; padding: 16px; margin-bottom: 30px; display: flex; gap: 30px; }
+          .meta-item { font-size: 14px; } .meta-label { color: #888; font-size: 12px; }
+          .day { margin-bottom: 32px; page-break-inside: avoid; }
+          .day-header { background: #FF6B35; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; font-size: 16px; font-weight: bold; }
+          .day-theme { background: #fff3ee; padding: 8px 16px; font-size: 13px; color: #FF6B35; border-left: 4px solid #FF6B35; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #f5f5f5; padding: 10px 12px; text-align: left; font-size: 13px; color: #555; border-bottom: 2px solid #eee; }
+          td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+          .cost { color: #16a34a; font-weight: bold; }
+          .day-total { background: #f9f9f9; padding: 10px 16px; text-align: right; font-size: 13px; font-weight: bold; color: #FF6B35; border-radius: 0 0 8px 8px; border-top: 2px solid #eee; }
+          .footer { margin-top: 40px; text-align: center; color: #aaa; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px; }
+          .total-box { background: #fff3ee; border: 2px solid #FF6B35; border-radius: 8px; padding: 16px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+          .total-label { font-size: 14px; color: #888; }
+          .total-amount { font-size: 24px; font-weight: bold; color: #FF6B35; }
+        </style>
+      </head>
+      <body>
+        <h1>🇮🇳 WanderAI — India Edition</h1>
+        <div class="subtitle">AI-Generated Travel Itinerary</div>
+        <div class="meta">
+          <div class="meta-item"><div class="meta-label">DESTINATION</div><strong>${destination}</strong></div>
+          <div class="meta-item"><div class="meta-label">DATES</div><strong>${dates}</strong></div>
+          <div class="meta-item"><div class="meta-label">TRAVELLERS</div><strong>${travelers}</strong></div>
+        </div>
+        <div class="total-box">
+          <div class="total-label">TOTAL ESTIMATED COST</div>
+          <div class="total-amount">${totalCost}</div>
+        </div>
+    `;
+
+    itinerary.forEach((day: any) => {
+      const dayTotal = INR(day.estimatedCost ?? 0);
+      html += `
+        <div class="day">
+          <div class="day-header">Day ${day.day} — ${day.date}</div>
+          <div class="day-theme">${day.theme ?? ""}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Activity</th>
+                <th>Description</th>
+                <th>Location</th>
+                <th>Cost/Person</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      (day.activities ?? []).forEach((act: any) => {
+        html += `
+          <tr>
+            <td>${act.time ?? ""}</td>
+            <td><strong>${act.name ?? ""}</strong></td>
+            <td>${act.description ?? ""}</td>
+            <td>${act.location ?? ""}</td>
+            <td class="cost">₹${act.estimatedCost ?? 0}</td>
+          </tr>
+        `;
+      });
+      html += `
+            </tbody>
+          </table>
+          <div class="day-total">Day Total: ${dayTotal}</div>
+        </div>
+      `;
+    });
+
+    html += `
+        <div class="footer">Generated by WanderAI — India Edition 🇮🇳 | All prices in INR</div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      // Save trip first to get ID
+      const response = await fetch("/api/travel/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: `${plan.destination} Adventure`, plan, request })
+      });
+      const saved = await response.json();
+      const tripId = saved.id;
+      const ngrokUrl = "https://laurel-oneirocritical-yan.ngrok-free.dev";
+      const shareUrl = `${ngrokUrl}/trip/${tripId}`;
+      const text = `Check out my AI-planned trip to ${plan.destination}!
+Estimated Cost: ${INR(plan.totalEstimatedCost)}
+${plan.itinerary?.length ?? 0} Days of exploration.
+
+Planned with WanderAI — India Edition 🇮🇳
+
+${shareUrl}`;
+      await navigator.clipboard.writeText(text);
+      toast({ title: "📋 Copied!", description: "Share link copied! Anyone can view this trip." });
+    } catch {
+      toast({ title: "Error", description: "Failed to generate share link.", variant: "destructive" });
+    }
+  };
+  const handleShareOld = () => {
+    const text = `Check out my AI-planned trip to ${plan.destination}!
+Estimated Cost: ${INR(plan.totalEstimatedCost)}
+${plan.itinerary.length} Days of exploration.
+
+Planned with WanderAI — India Edition 🇮🇳
+
+https://laurel-oneirocritical-yan.ngrok-free.dev`;
     navigator.clipboard.writeText(text);
     toast({ title: "📋 Copied!", description: "Share your itinerary with friends and family." });
   };
@@ -79,6 +212,9 @@ export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProp
           <ArrowLeft className="w-4 h-4" /> Back to Search
         </PremiumButton>
         <div className="flex gap-3">
+          <PremiumButton variant="outline" onClick={handleDownloadPDF}>
+            <FileDown className="w-4 h-4" /> Download PDF
+          </PremiumButton>
           <PremiumButton variant="outline" onClick={handleShare}>
             <Share className="w-4 h-4" /> Share
           </PremiumButton>
@@ -172,18 +308,18 @@ export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProp
         {/* Main Tabs Area */}
         <div className="lg:col-span-8">
           <div className="flex p-1.5 bg-secondary/50 backdrop-blur-md border border-border/50 rounded-2xl w-full sm:w-fit mb-8 overflow-x-auto">
-            {(['itinerary', 'transport', 'hotels'] as const).map(tab => (
+            {((['itinerary', 'transport', 'hotels', 'weather'] as const)).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  "flex-1 sm:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 capitalize",
+                  "flex-1 sm:flex-none px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 capitalize",
                   activeTab === tab
                     ? "bg-background text-foreground shadow-md border border-border/50"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 )}
               >
-                {tab === 'itinerary' ? '🗓️ ' : tab === 'transport' ? '🚆 ' : '🏨 '}{tab}
+                {tab === 'itinerary' ? '🗓️ Itinerary' : tab === 'transport' ? '🚆 Transport' : tab === 'hotels' ? '🏨 Hotels' : tab === 'weather' ? '🌤️ Weather' : tab}
               </button>
             ))}
           </div>
@@ -199,6 +335,7 @@ export function ResultsDashboard({ plan, request, onBack }: ResultsDashboardProp
               {activeTab === 'itinerary' && <ItineraryTab plan={plan} />}
               {activeTab === 'transport' && <TransportTab plan={plan} />}
               {activeTab === 'hotels' && <HotelsTab plan={plan} />}
+              {activeTab === 'weather' && <WeatherTab destination={plan.destination ?? ''} startDate={request.startDate} endDate={request.endDate} />}
             </motion.div>
           </AnimatePresence>
         </div>

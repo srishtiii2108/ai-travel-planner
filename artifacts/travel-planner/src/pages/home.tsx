@@ -7,7 +7,7 @@ import { ResultsDashboard } from "@/components/dashboard/results-dashboard";
 import { SavedTripsDrawer } from "@/components/saved-trips-drawer";
 import { useGenerateTravelPlan } from "@/hooks/use-travel";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@workspace/replit-auth-web";
+import { useAuth } from "@workspace/auth-web";
 import type { TravelPlanRequest, TravelPlanResponse } from "@workspace/api-client-react";
 
 export default function Home() {
@@ -76,7 +76,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -87,7 +87,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleMyTrips}
-                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold px-4 py-2.5 rounded-full transition-all"
+                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold px-4 py-2.5 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/30"
                   >
                     <Menu className="w-4 h-4" />
                     <span className="hidden sm:inline">My Trips</span>
@@ -111,7 +111,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={login}
-                  className="flex items-center gap-2 bg-primary text-primary-foreground font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                  className="flex items-center gap-2 bg-primary text-primary-foreground font-bold px-5 py-2.5 rounded-full hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 pulse-glow"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Sign In</span>
@@ -128,22 +128,21 @@ export default function Home() {
           <div className="relative w-full py-20 lg:py-32 flex flex-col items-center">
             <div className="absolute inset-0 z-0">
               <img
-                src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1920&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1920&fit=crop"
                 alt="India travel background"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-background" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-background" />
             </div>
 
-            <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary font-bold text-sm px-4 py-2 rounded-full mb-6 backdrop-blur-sm">
-                <span>🇮🇳</span> India-Only Travel Planner · All Prices in ₹ INR
+            <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 text-center mb-12 animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary font-bold text-sm px-4 py-2 rounded-full mb-6 backdrop-blur-sm animate-fade-in-up hover:scale-105 transition-transform duration-300 cursor-default">
               </div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight drop-shadow-2xl">
-                Where will <span className="text-primary-foreground bg-primary px-5 py-2 rounded-3xl inline-block -rotate-2 mx-2 shadow-xl shadow-primary/30">AI</span> take you?
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight drop-shadow-2xl animate-fade-in-up">
+                Where will <span className="text-primary-foreground bg-primary px-5 py-2 rounded-3xl inline-block -rotate-2 mx-2 shadow-xl shadow-primary/30 hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-default">AI</span> take you?
               </h1>
               <p className="mt-8 text-xl md:text-2xl text-white/90 font-medium max-w-3xl mx-auto drop-shadow-lg leading-relaxed">
-                Hyper-personalized Indian itineraries, Indian Railways transport, and handpicked stays — curated by 5 AI agents in seconds.
+                From the Himalayas to the beaches — we plan it all for you.
               </p>
             </div>
 

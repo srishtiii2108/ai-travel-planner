@@ -1,4 +1,6 @@
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { CohereClient } from "cohere-ai";
+
+const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 export interface HotelOption {
   id: string;
@@ -26,12 +28,12 @@ export interface AccommodationInput {
 }
 
 const UNSPLASH_HOTEL_IMAGES = [
-  "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1571003497405-93515bc7f30b?w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1520250953542-b68b58ef4f91?w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop",
+  "[https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&auto=format&fit=crop)",
+  "[https://images.unsplash.com/photo-1571003497405-93515bc7f30b?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1571003497405-93515bc7f30b?w=600&auto=format&fit=crop)",
+  "[https://images.unsplash.com/photo-1520250953542-b68b58ef4f91?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1520250953542-b68b58ef4f91?w=600&auto=format&fit=crop)",
+  "[https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&auto=format&fit=crop)",
+  "[https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&auto=format&fit=crop)",
+  "[https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop](https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop)",
 ];
 
 export async function accommodationAgent(input: AccommodationInput): Promise<HotelOption[]> {
@@ -84,17 +86,16 @@ Only one hotel should have isRecommended: true (best value for budget).
 Leave imageUrl as empty string "". All prices in INR (₹).
 Return ONLY valid JSON, no markdown.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
-    max_completion_tokens: 4096,
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
+  const response = await cohere.chat({
+    model: "command-r-08-2024",
+    message: prompt,
   });
 
-  const content = response.choices[0]?.message?.content ?? "{}";
+  let rawContent = response.text;
+  rawContent = rawContent.replace(/```json\n?/gi, '').replace(/```/gi, '').trim();
   
   try {
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(rawContent);
     const hotels: HotelOption[] = parsed.hotels ?? [];
     
     return hotels.map((hotel, index) => ({

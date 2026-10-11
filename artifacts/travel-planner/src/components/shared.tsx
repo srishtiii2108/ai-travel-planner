@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { motion, HTMLMotionProps } from "framer-motion";
 
-export const GlassCard = React.forwardRef<HTMLDivElement, HTMLMotionProps<"div">>(
+export const GlassCard = React.forwardRef<HTMLDivElement, Omit<HTMLMotionProps<"div">, "children"> & { children?: React.ReactNode }>(
   ({ className, children, ...props }, ref) => {
     return (
       <motion.div

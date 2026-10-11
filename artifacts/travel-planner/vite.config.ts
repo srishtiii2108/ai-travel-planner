@@ -59,6 +59,13 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
+    historyApiFallback: true,
     port,
     host: "0.0.0.0",
     allowedHosts: true,

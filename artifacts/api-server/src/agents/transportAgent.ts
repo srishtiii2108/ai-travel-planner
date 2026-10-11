@@ -1,4 +1,6 @@
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { CohereClient } from "cohere-ai";
+
+const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 export interface TransportOption {
   id: string;
@@ -68,17 +70,16 @@ Return a JSON object:
 Mark exactly one as isRecommended: true (best value). Assign filter: "cheapest" to lowest price, "fastest" to shortest duration, "recommended" to best overall value.
 All prices in Indian Rupees (₹). Return ONLY valid JSON, no markdown.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
-    max_completion_tokens: 4096,
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
+  const response = await cohere.chat({
+    model: "command-r-08-2024",
+    message: prompt,
   });
 
-  const content = response.choices[0]?.message?.content ?? "{}";
+  let rawContent = response.text;
+  rawContent = rawContent.replace(/```json\n?/gi, '').replace(/```/gi, '').trim();
   
   try {
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(rawContent);
     return parsed.transport ?? [];
   } catch {
     return [];
