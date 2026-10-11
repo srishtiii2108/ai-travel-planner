@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "module": "CommonJS",
-    "moduleResolution": "node"
+    "moduleResolution": "bundler"
   },
   "include": ["src"]
 }
